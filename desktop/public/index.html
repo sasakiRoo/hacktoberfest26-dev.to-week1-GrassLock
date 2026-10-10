@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrassLock - Developer Screen Sentinel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased">
+  <!-- Soft-Skill Floating Island Top Header -->
+  <header class="app-header-floating">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-logo"><i data-lucide="sprout" class="icon-brand"></i></div>
+        <div class="brand-meta">
+          <div class="brand-name-row">
+            <span class="brand-name">GrassLock</span>
+            <span class="brand-badge-pill">GEMMA 4</span>
+          </div>
+          <span class="brand-tag">Screen Sentinel & Dual-Device Guardian</span>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <div class="connection-status-pill" id="connStatusPill" title="Desktop Endpoint Status">
+          <span class="dot-indicator" id="connDot"></span>
+          <span class="conn-text" id="connEndpointText">http://127.0.0.1:3847</span>
+          <button class="btn-copy-icon" id="btnCopyEndpoint" title="Copy endpoint to clipboard"><i data-lucide="copy" class="icon-sm"></i></button>
+        </div>
+
+        <div class="companion-status-badge disconnected" id="companionHeaderBadge" title="Mobile Companion App Status">
+          <span class="companion-phone-icon"><i data-lucide="smartphone" class="icon-xs"></i></span>
+          <span class="companion-indicator-dot offline" id="companionHeaderDot"></span>
+          <span class="companion-status-text" id="companionHeaderText">Companion: <strong>Offline</strong></span>
+        </div>
+
+        <div class="streak-mini-chip" title="Daily outdoor streak">
+          <span class="streak-label"><i data-lucide="flame" class="icon-streak"></i> Streak:</span>
+          <strong id="statGrassStreak">1</strong>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Container -->
+  <main class="dashboard-container">
+    
+    <!-- Toast Banner -->
+    <div id="toastNotification" class="toast-banner hidden">
+      <span class="toast-icon"><i data-lucide="info" class="icon-sm"></i></span>
+      <span class="toast-message" id="toastMessage">Select at least one application to begin your session.</span>
+    </div>
+
+    <!-- HERO SECTION: SENTINEL TIMER & CONTROLS (Double-Bezel Architecture) -->
+    <section class="card-shell monitor-card-shell">
+      <div class="card-core monitor-card">
+        <div class="monitor-top-row">
+          <div class="card-eyebrow">
+            <span>SENTINEL FOCUS TIMER</span>
+            <span class="live-tag idle" id="sessionStatusTag"><i data-lucide="circle" class="icon-xs"></i> STANDBY (NOT STARTED)</span>
+          </div>
+          <div class="target-summary-pill">
+            <span>Work Target:</span>
+            <strong id="targetDurationSummary">25 min</strong>
+          </div>
+        </div>
+
+        <!-- Target Duration Selection Toolbar -->
+        <div class="timer-config-toolbar" id="timerConfigToolbar">
+          <div class="toolbar-label">
+            <span>Select Work Threshold:</span>
+          </div>
+          <div class="duration-presets-row" id="presetPillsGroup">
+            <button class="pill-btn active" data-seconds="1500">25 min (Pomodoro)</button>
+            <button class="pill-btn" data-seconds="2700">45 min (Standard)</button>
+            <button class="pill-btn" data-seconds="3600">60 min (Deep Work)</button>
+            <button class="pill-btn pill-demo" data-seconds="30"><i data-lucide="zap" class="icon-xs"></i> 30s (Demo)</button>
+          </div>
+          <div class="custom-duration-inline">
+            <span class="custom-label">Custom:</span>
+            <input type="number" id="customDurationInput" min="1" max="600" value="25" class="custom-num-input" placeholder="25">
+            <div class="unit-toggle-group">
+              <button type="button" class="unit-btn active" id="unitBtnMin" data-unit="min">Min</button>
+              <button type="button" class="unit-btn" id="unitBtnSec" data-unit="sec">Sec</button>
+            </div>
+            <button type="button" id="btnApplyCustomDuration" class="btn-apply-custom">Apply</button>
+            <span class="duration-feedback" id="durationFeedback">
+              Target: <strong>25 min</strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- Timer Digits Display -->
+        <div class="timer-display-group">
+          <div class="timer-digits" id="timerDigits">00:00</div>
+          <div class="timer-divider">/</div>
+          <div class="target-digits" id="targetDigits">25:00</div>
+        </div>
+
+        <!-- Progress Track -->
+        <div class="progress-track">
+          <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
+        </div>
+
+        <!-- Active Process Activity Strip -->
+        <div class="monitor-info-row">
+          <div class="active-detection-state">
+            <span class="info-label">Active Coding Detected:</span>
+            <div class="detected-chips" id="detectedAppsContainer">
+              <span class="app-chip idle">Session not active</span>
+            </div>
+          </div>
+          <div class="session-notice" id="sessionNoticeText">
+            Timer increments strictly when the session is active and your selected tools are open.
+          </div>
+        </div>
+
+        <!-- Session Controls (Cleaned: No Test Button) -->
+        <div class="monitor-controls-row">
+          <button id="btnToggleSession" class="btn-primary-sentinel">
+            <span class="btn-icon" id="sessionBtnIcon"><i data-lucide="play" class="icon-btn"></i></span>
+            <span id="btnToggleSessionText">Start Sentinel Session</span>
+          </button>
+          <button id="btnResetSession" class="btn-secondary-ghost" title="Reset session timer back to 00:00">
+            <span class="btn-icon"><i data-lucide="rotate-ccw" class="icon-btn"></i></span>
+            <span>Reset Session</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASYMMETRIC BENTO GRID (Apps on Left, Connection on Right) -->
+    <div class="grid-two">
+      
+      <!-- COLUMN 1: MONITORED APPLICATIONS (Double-Bezel) -->
+      <section class="card-shell" id="cardAppSelection">
+        <div class="card-core">
+          <div class="card-header">
+            <div class="card-header-flex">
+              <div>
+                <div class="title-lock-row">
+                  <h2 class="card-title">Monitored Applications</h2>
+                  <span id="appsLockedBadge" class="card-header-locked-badge hidden"><i data-lucide="lock" class="icon-xs"></i> Locked during session</span>
+                </div>
+                <p class="card-subtitle">
+                  Select which editors and tools to track. Only checked tools increment time.
+                </p>
+              </div>
+              <div class="app-selection-actions">
+                <button type="button" id="btnSelectAllApps" class="btn-micro"><i data-lucide="check" class="icon-xs"></i> Select All</button>
+                <button type="button" id="btnDeselectAllApps" class="btn-micro"><i data-lucide="x" class="icon-xs"></i> Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- App Checklist -->
+          <div class="app-toggles-grid" id="appTogglesList">
+            <label class="toggle-card">
+              <input type="checkbox" value="antigravity" class="app-checkbox">
+              <div class="toggle-content">
+                <span class="toggle-name">Antigravity IDE</span>
+                <span class="toggle-sig">process: <code>antigravity</code></span>
+              </div>
+              <span class="process-indicator" id="status-antigravity">IDLE</span>
+            </label>
+
+            <label class="toggle-card">
+              <input type="checkbox" value="vscode" class="app-checkbox">
+              <div class="toggle-content">
+                <span class="toggle-name">Visual Studio Code</span>
+                <span class="toggle-sig">process: <code>code</code></span>
+              </div>
+              <span class="process-indicator" id="status-vscode">IDLE</span>
+            </label>
+
+            <label class="toggle-card">
+              <input type="checkbox" value="firefox" class="app-checkbox">
+              <div class="toggle-content">
+                <span class="toggle-name">Mozilla Firefox</span>
+                <span class="toggle-sig">process: <code>firefox</code></span>
+              </div>
+              <span class="process-indicator" id="status-firefox">IDLE</span>
+            </label>
+
+            <label class="toggle-card">
+              <input type="checkbox" value="chrome" class="app-checkbox">
+              <div class="toggle-content">
+                <span class="toggle-name">Google Chrome / Chromium</span>
+                <span class="toggle-sig">process: <code>chrome</code></span>
+              </div>
+              <span class="process-indicator" id="status-chrome">IDLE</span>
+            </label>
+          </div>
+
+          <!-- Custom Process Input -->
+          <!-- <div class="custom-process-section">
+            <div class="custom-process-header">
+              <span>Add Custom Process:</span>
+            </div>
+            <form class="custom-process-form" id="customProcessForm">
+              <input type="text" id="customProcessInput" class="custom-text-input" placeholder="e.g. zed, slack, blender, idea..." autocomplete="off">
+              <button type="submit" class="btn-add-process">+ Add</button>
+            </form>
+            <div class="custom-chips-container" id="customChipsContainer"></div>
+          </div> -->
+
+          <div class="selection-summary-bar">
+            <span>Selected for tracking:</span>
+            <strong id="selectedAppsCount">0 apps</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: COMPANION CONNECTION (Double-Bezel) -->
+      <section class="card-shell" id="cardConnectionMode">
+        <div class="card-core">
+          <div class="card-header">
+            <div>
+              <div class="title-lock-row">
+                <h2 class="card-title">Companion Connection</h2>
+                <span id="connLockedBadge" class="card-header-locked-badge hidden"><i data-lucide="lock" class="icon-xs"></i> Locked during session</span>
+              </div>
+              <p class="card-subtitle">
+                Pair your Android smartphone to receive alerts and submit outdoor verification.
+              </p>
+            </div>
+          </div>
+
+          <div class="connection-options-column">
+            <!-- Option 1: USB Cable -->
+            <label class="conn-card active" id="connCardUsb">
+              <input type="radio" name="connectionMode" value="usb" checked class="conn-radio">
+              <div class="conn-card-body">
+                <div class="conn-card-header">
+                  <span class="conn-icon"><i data-lucide="cable"></i></span>
+                  <span class="conn-title">USB Cable (ADB Reverse)</span>
+                  <span class="conn-chip recommended">Recommended</span>
+                </div>
+                <p class="conn-desc">
+                  Direct zero-latency wired connection via port <code>3847</code>. No shared Wi-Fi needed.
+                </p>
+                <div class="conn-specs">
+                  <span class="spec-label">Endpoint:</span>
+                  <code class="spec-code" id="usbEndpointDisplay">http://127.0.0.1:3847</code>
+                </div>
+              </div>
+            </label>
+
+            <!-- Option 2: Wi-Fi LAN -->
+            <label class="conn-card" id="connCardWifi">
+              <input type="radio" name="connectionMode" value="wifi" class="conn-radio">
+              <div class="conn-card-body">
+                <div class="conn-card-header">
+                  <span class="conn-icon"><i data-lucide="wifi"></i></span>
+                  <span class="conn-title">Local Wi-Fi LAN / Hotspot</span>
+                  <span class="conn-chip">Wireless</span>
+                </div>
+                <p class="conn-desc">
+                  Laptop and phone on the same Wi-Fi or hotspot. Walk freely outdoors untethered.
+                </p>
+                <div class="conn-specs">
+                  <span class="spec-label">Endpoint:</span>
+                  <code class="spec-code" id="wifiEndpointDisplay">http://192.168.1.1:3847</code>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="conn-helper-bar mt-3">
+            <span class="helper-icon"><i data-lucide="info"></i></span>
+            <span class="helper-text" id="connHelperText">
+              USB mode active. Open GrassLock on phone configured with <strong>http://127.0.0.1:3847</strong>.
+            </span>
+          </div>
+
+          <!-- Companion Real-Time Sync Panel -->
+          <div class="companion-sync-panel disconnected" id="companionSyncPanel">
+            <div class="sync-panel-header">
+              <div class="sync-devices-flow">
+                <span class="device-node"><i data-lucide="monitor" class="icon-device"></i> Desktop Sentinel</span>
+                <span class="sync-wave-bridge" id="syncWaveBridge">··· <i data-lucide="unplug" class="icon-xs"></i> ···</span>
+                <span class="device-node" id="syncPhoneNode"><i data-lucide="smartphone" class="icon-device"></i> GrassLock Android</span>
+              </div>
+              <div class="sync-state-chip disconnected" id="syncStateChip">
+                <i data-lucide="circle-slash" class="icon-xs"></i> DISCONNECTED
+              </div>
+            </div>
+            <div class="sync-panel-body">
+              <div class="sync-status-headline" id="syncStatusHeadline">
+                Companion App Not Connected
+              </div>
+              <div class="sync-status-detail" id="syncStatusDetail">
+                Open the GrassLock companion app on your phone and tap "Connect to Desktop" to pair real-time signals.
+              </div>
+            </div>
+            <div class="sync-panel-footer">
+              <span class="sync-meta" id="syncLastPingTime">Last Signal: Never</span>
+              <span class="sync-meta" id="syncProtocolInfo">Protocol: REST & WebSocket Bridge</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- SECTION 3: LAST VERIFIED NATURE BREAK CARD -->
+    <section class="card-shell break-history-shell hidden" id="lastBreakCard">
+      <div class="card-core break-history-card">
+        <div class="card-header">
+          <span class="badge-success"><i data-lucide="sparkles" class="icon-xs"></i> VERIFIED BY GOOGLE GEMMA 4 AI</span>
+          <h2 class="card-title mt-1" id="lastBreakTitle">Desktop Unlocked & Refreshed</h2>
+        </div>
+
+        <div class="break-result-grid">
+          <div class="break-commentary" id="breakCommentary">
+            "Authentic outdoor nature verified. Your eyes received refreshing solar rays and natural greenery."
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FULLSCREEN LOCKOUT OVERLAY (Soft-Skill Obsidian with Dual-Gated 5-Min Cooldown) -->
+  <div class="lockout-screen hidden" id="lockoutScreen">
+    <div class="lockout-backdrop"></div>
+    <div class="lockout-content">
+      <div class="lockout-pulse-container">
+        <div class="lockout-pulse-glow"></div>
+        <div class="lockout-badge-icon"><i data-lucide="sprout" class="icon-lockout-badge"></i></div>
+      </div>
+
+      <h1 class="lockout-headline">TIME TO TOUCH GRASS</h1>
+      <p class="lockout-subtext">
+        Focus threshold reached. Step away from your workstation for a mandatory 5-minute break and snap an outdoor photo.
+      </p>
+
+      <!-- DUAL-GATED COOLDOWN CARD: Mandatory 5-Minute Break Timer -->
+      <div class="break-cooldown-card" id="breakCooldownCard">
+        <div class="cooldown-header">
+          <span class="cooldown-eyebrow">MANDATORY 5-MINUTE OUTDOOR PAUSE</span>
+          <span class="cooldown-status-tag active" id="cooldownStatusTag"><i data-lucide="timer" class="icon-xs"></i> REST IN PROGRESS</span>
+        </div>
+        
+        <div class="cooldown-timer-row">
+          <div class="cooldown-digits" id="cooldownDigits">05:00</div>
+          <div class="cooldown-caption" id="cooldownCaption">
+            Screen thaws automatically after 5 minutes once outdoor nature is verified by Gemma AI.
+          </div>
+        </div>
+
+        <!-- Dual-Gate Progress Indicators -->
+        <div class="dual-gates-row">
+          <div class="gate-pill pending" id="gateNaturePill">
+            <span class="gate-icon" id="gateNatureIcon"><i data-lucide="sprout" class="icon-xs"></i></span>
+            <span class="gate-text" id="gateNatureText">Outdoor Photo: Pending</span>
+          </div>
+          <div class="gate-pill in-progress" id="gateTimerPill">
+            <span class="gate-icon" id="gateTimerIcon"><i data-lucide="timer" class="icon-xs"></i></span>
+            <span class="gate-text" id="gateTimerText">Rest Cooldown: Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Mobile App Connection Status inside Lockout -->
+      <div class="lockout-companion-box disconnected" id="lockoutCompanionBox">
+        <span class="lockout-companion-dot" id="lockoutCompanionDot"></span>
+        <span class="lockout-companion-text" id="lockoutCompanionText">Companion: Waiting for connection...</span>
+      </div>
+
+      <div class="lockout-instructions-box">
+        <div class="inst-step">
+          <span class="step-badge">1</span>
+          <div>
+            <strong>Open GrassLock on Android</strong>
+            <p>Launch the companion app on your phone.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="step-badge">2</span>
+          <div>
+            <strong>Active Desktop Connection</strong>
+            <p id="lockoutEndpointNote">Connected via endpoint: <code>http://127.0.0.1:3847</code></p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="step-badge">3</span>
+          <div>
+            <strong>Snap Outdoor Nature / Sky</strong>
+            <p>Google Gemma 4 AI verifies outdoor authenticity and thaws your screen once 5 minutes conclude.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="sync-waiting-indicator">
+        <div class="spinner-ring"></div>
+        <span class="waiting-text" id="lockoutWaitingText">Waiting for photo verification from Android app (Google Gemma AI)...</span>
+      </div>
+
+      <div class="emergency-override-row">
+        <button id="btnEmergencyOverride" class="btn-ghost-override">
+          Emergency Manual Unlock (I promise to rest later)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="lucide.min.js"></script>
+  <script src="desktop.js"></script>
+</body>
+</html>

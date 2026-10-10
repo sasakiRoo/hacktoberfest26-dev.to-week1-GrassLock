@@ -1,0 +1,23 @@
+# Environment Variables
+.env
+.env.local
+
+# Node & Desktop
+node_modules/
+dist/
+desktop/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Android & Gradle
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+local.properties
+.idea/
+*.iml
+.DS_Store

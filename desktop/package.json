@@ -1,0 +1,37 @@
+{
+  "name": "grasslock-desktop",
+  "version": "1.0.0",
+  "description": "GrassLock Desktop - Anti-slop screen guardian and process monitor for Hacktoberfest 2026 Touch Grass challenge",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --no-sandbox",
+    "dev": "electron . --no-sandbox",
+    "pack": "npx electron-builder --dir --linux",
+    "dist": "npx electron-builder --linux AppImage"
+  },
+  "build": {
+    "appId": "com.grasslock.sentinel",
+    "productName": "GrassLock",
+    "asar": false,
+    "linux": {
+      "target": [
+        "dir"
+      ],
+      "category": "Utility",
+      "executableArgs": [
+        "--no-sandbox",
+        "--disable-gpu"
+      ]
+    }
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "lucide": "^1.55.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^26.15.3"
+  }
+}

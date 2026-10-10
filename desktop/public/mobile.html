@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GrassLock Mobile Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { padding: 1rem; max-width: 480px; margin: 0 auto; background: #090b0a; }
+    .mobile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+    .camera-card { background: #111412; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; }
+    .preview-box { width: 100%; height: 240px; border-radius: 12px; background: #050706; border: 1px dashed rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 1rem; position: relative; }
+    .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+    .btn-camera { width: 100%; padding: 0.9rem; background: #22c55e; color: #000; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .btn-verify { width: 100%; padding: 0.9rem; background: #f59e0b; color: #000; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .hidden { display: none !important; }
+    #cameraInput { display: none; }
+  </style>
+</head>
+<body>
+  <div class="mobile-header">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <span style="font-size: 1.5rem;">🌿</span>
+      <div>
+        <div style="font-weight: 800; font-size: 1.1rem; color: #f2f1ed;">GrassLock Mobile</div>
+        <div style="font-size: 0.72rem; color: #22c55e; font-weight: 600;">Touch Grass Companion</div>
+      </div>
+    </div>
+    <div class="server-badge">
+      <span class="dot-live"></span>
+      <span id="syncText" style="font-size: 0.75rem;">Connected</span>
+    </div>
+  </div>
+
+  <!-- Status Card -->
+  <div class="card" id="mobileStatusCard" style="margin-bottom: 1rem; text-align: center; border-color: rgba(34, 197, 94, 0.3);">
+    <div id="statusTitle" style="font-size: 1.15rem; font-weight: 800; color: #22c55e; margin-bottom: 0.3rem;">🟢 DESKTOP ACTIVE</div>
+    <div id="statusDesc" style="font-size: 0.85rem; color: #9aa59e; line-height: 1.45;">
+      Your PC is currently in active coding mode. Keep this page open; when your timer expires, you'll be instructed to snap a nature photo here.
+    </div>
+  </div>
+
+  <!-- Camera Section -->
+  <div class="camera-card">
+    <div style="font-weight: 700; font-size: 0.95rem; color: #f2f1ed; margin-bottom: 0.2rem;">Proof of Nature Camera</div>
+    <div style="font-size: 0.78rem; color: #616e66; margin-bottom: 0.85rem;">Snap a photo of grass, sky, leaves, or balcony plants to unlock your computer.</div>
+
+    <div class="preview-box" id="previewBox">
+      <span id="previewPlaceholder" style="font-size: 0.85rem; color: #616e66;">📷 No photo taken yet</span>
+      <img id="previewImg" class="hidden" alt="Proof Photo">
+    </div>
+
+    <input type="file" id="cameraInput" accept="image/*" capture="environment">
+    <button class="btn-camera" id="btnSnap">📷 Open Camera & Snap Photo</button>
+    <button class="btn-verify hidden" id="btnVerify">✨ Verify with Google Gemma AI</button>
+  </div>
+
+  <!-- Result Box -->
+  <div class="card hidden" id="resultCard" style="border-color: #22c55e; background: rgba(34, 197, 94, 0.1);">
+    <div style="font-weight: 800; color: #22c55e; margin-bottom: 0.35rem;">🎉 DESKTOP UNLOCKED!</div>
+    <div id="resNaturalist" style="font-size: 0.88rem; color: #f2f1ed; margin-bottom: 0.5rem; line-height: 1.4;"></div>
+    <div style="background: rgba(0,0,0,0.4); padding: 0.65rem; border-radius: 6px; font-family: monospace; font-size: 0.78rem; color: #f59e0b;" id="resGit"></div>
+  </div>
+
+  <script>
+    const host = window.location.hostname || 'localhost';
+    const ws = new WebSocket(`ws://${host}:3847`);
+    
+    const statusTitle = document.getElementById('statusTitle');
+    const statusDesc = document.getElementById('statusDesc');
+    const mobileStatusCard = document.getElementById('mobileStatusCard');
+    const btnSnap = document.getElementById('btnSnap');
+    const cameraInput = document.getElementById('cameraInput');
+    const previewBox = document.getElementById('previewBox');
+    const previewImg = document.getElementById('previewImg');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+    const btnVerify = document.getElementById('btnVerify');
+    const resultCard = document.getElementById('resultCard');
+    const resNaturalist = document.getElementById('resNaturalist');
+    const resGit = document.getElementById('resGit');
+
+    let capturedBase64 = null;
+
+    ws.onmessage = (e) => {
+      const { type, payload } = JSON.parse(e.data);
+      if (type === 'INIT' && payload.isLocked) setLockedState();
+      if (type === 'LOCKOUT_TRIGGERED') setLockedState();
+      if (type === 'DESKTOP_UNLOCKED') setUnlockedState(payload);
+    };
+
+    function setLockedState() {
+      statusTitle.textContent = '🚨 DESKTOP IS LOCKED!';
+      statusTitle.style.color = '#ef4444';
+      statusDesc.textContent = 'You have worked too long! Step away from your computer, go to a window or outside, and snap a nature photo below to unlock your screen.';
+      mobileStatusCard.style.borderColor = '#ef4444';
+      mobileStatusCard.style.background = 'rgba(239, 68, 68, 0.15)';
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+
+    function setUnlockedState(payload) {
+      statusTitle.textContent = '🟢 DESKTOP UNLOCKED!';
+      statusTitle.style.color = '#22c55e';
+      statusDesc.textContent = 'Great job touching grass! Your PC screen has been unlocked and timer reset.';
+      mobileStatusCard.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+      mobileStatusCard.style.background = '#111412';
+      
+      if (payload) {
+        resultCard.classList.remove('hidden');
+        resNaturalist.textContent = payload.naturalistComment || 'Nature verified!';
+        resGit.textContent = 'Git commit: ' + (payload.gitExcuse || 'refactor(nature): touched grass');
+      }
+    }
+
+    btnSnap.onclick = () => cameraInput.click();
+
+    cameraInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        capturedBase64 = event.target.result;
+        previewImg.src = capturedBase64;
+        previewImg.classList.remove('hidden');
+        previewPlaceholder.classList.add('hidden');
+        btnVerify.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    };
+
+    btnVerify.onclick = async () => {
+      btnVerify.textContent = '⏳ Verifying with Gemma AI...';
+      btnVerify.disabled = true;
+
+      try {
+        const res = await fetch('/api/verify-grass', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: capturedBase64, notes: 'Photo of grass/nature taken from mobile camera' })
+        });
+        const json = await res.json();
+        if (json.success) {
+          setUnlockedState(json.result);
+        }
+      } catch (err) {
+        alert('Verification error: ' + err.message);
+      } finally {
+        btnVerify.textContent = '✨ Verify with Google Gemma AI';
+        btnVerify.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>
