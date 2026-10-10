@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUnit = 'min';
   let isMobileAppConnected = false;
   let lastMobileSeen = null;
-  let breakSecondsRemaining = 300;
+  let breakSecondsRemaining = 120;
   let isNatureVerified = false;
 
   // DOM Elements - Header & Endpoint
@@ -1041,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lockoutScreen.classList.add('hidden');
     progressBar.style.width = '0%';
     timerDigits.textContent = '00:00';
-    breakSecondsRemaining = 300;
+    breakSecondsRemaining = 120;
     isNatureVerified = false;
     updateCooldownUI();
     playSuccessTone();

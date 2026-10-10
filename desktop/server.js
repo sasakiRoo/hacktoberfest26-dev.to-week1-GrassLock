@@ -51,7 +51,7 @@ let appState = {
   lastGemmaReview: null,
   grassStreak: 1,
   // Dual-Gated Unlock State
-  mandatoryBreakSeconds: 300, // 5 minutes mandatory break
+  mandatoryBreakSeconds: 120, // 2 minutes mandatory break
   breakSecondsRemaining: 0,
   isNatureVerified: false,
   frozenAppCount: 0
@@ -88,7 +88,7 @@ function broadcast(type, payload) {
 
 // Send Android ADB Push Notification / broadcast to connected device
 function triggerAdbNotification() {
-  const cmd = `adb shell am broadcast -a com.grasslock.ALERT --es title "Time to Touch Grass!" --es message "Desktop is locked. Grab your phone and take a 5-minute break outside!"`;
+  const cmd = `adb shell am broadcast -a com.grasslock.ALERT --es title "Time to Touch Grass!" --es message "Desktop is locked. Grab your phone and take a 2-minute break outside!"`;
   exec(cmd, (err) => {
     if (err) {
       console.log('ADB broadcast note (USB device not reacting or app not active):', err.message);
@@ -98,13 +98,13 @@ function triggerAdbNotification() {
   });
 }
 
-// Trigger Lockout with Real Process Freezing & 5-Minute Cooldown
+// Trigger Lockout with Real Process Freezing & 2-Minute Cooldown
 async function triggerLockout() {
   if (appState.isLocked) return;
   appState.isLocked = true;
   appState.isTrackingActive = false; // Freeze and halt tracking when locked
   appState.isNatureVerified = false;
-  appState.breakSecondsRemaining = appState.mandatoryBreakSeconds; // 300s (5 minutes)
+  appState.breakSecondsRemaining = appState.mandatoryBreakSeconds; // 120s (2 minutes)
 
   // 1. Discover exact process PIDs of monitored coding apps
   processTracker.setTargetApps(appState.selectedApps);
@@ -114,10 +114,10 @@ async function triggerLockout() {
   const frozen = await processTracker.freezeProcesses(targetPids);
   appState.frozenAppCount = frozen.length;
 
-  console.log(`🚨 Lockout Triggered: ${frozen.length} target processes frozen via SIGSTOP. Mandatory 5-minute rest period started.`);
+  console.log(`🚨 Lockout Triggered: ${frozen.length} target processes frozen via SIGSTOP. Mandatory 2-minute rest period started.`);
 
   broadcast('LOCKOUT_TRIGGERED', {
-    message: 'Time to Touch Grass! Take a mandatory 5-minute break and capture outdoor nature.',
+    message: 'Time to Touch Grass! Take a mandatory 2-minute break and capture outdoor nature.',
     serverIp: getLocalIp(),
     port: PORT,
     breakSecondsRemaining: appState.breakSecondsRemaining,
@@ -127,7 +127,7 @@ async function triggerLockout() {
   });
   triggerAdbNotification();
 
-  // 3. Start 1-second interval to tick down the 5-minute cooldown
+  // 3. Start 1-second interval to tick down the 2-minute cooldown
   if (breakInterval) clearInterval(breakInterval);
   breakInterval = setInterval(() => {
     if (!appState.isLocked) {
@@ -145,14 +145,14 @@ async function triggerLockout() {
       });
     }
 
-    // Dual-gated unlock check: If 5-minute cooldown is finished AND outdoor nature was verified
+    // Dual-gated unlock check: If 2-minute cooldown is finished AND outdoor nature was verified
     if (appState.breakSecondsRemaining <= 0 && appState.isNatureVerified) {
       clearInterval(breakInterval);
       breakInterval = null;
-      console.log('✨ Both conditions satisfied: 5-minute rest completed and Gemma verified outdoor nature! Thawing screen...');
+      console.log('✨ Both conditions satisfied: 2-minute rest completed and Gemma verified outdoor nature! Thawing screen...');
       unlockDesktop(appState.lastGemmaReview || {
-        naturalistComment: '5-minute outdoor rest completed and nature verified by Google Gemma AI!',
-        gitExcuse: 'refactor(wellness): completed 5-min outdoor break, screen thawed'
+        naturalistComment: '2-minute outdoor rest completed and nature verified by Google Gemma AI!',
+        gitExcuse: 'refactor(wellness): completed 2-min outdoor break, screen thawed'
       });
     }
   }, 1000);

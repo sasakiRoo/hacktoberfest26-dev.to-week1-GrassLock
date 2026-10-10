@@ -101,7 +101,7 @@ fun MainScreen(
   // Sentinel Desktop State
   var isLocked by remember { mutableStateOf(false) }
   var targetAppCount by remember { mutableStateOf(0) }
-  var breakSecondsRemaining by remember { mutableStateOf(300) }
+  var breakSecondsRemaining by remember { mutableStateOf(120) }
   var isNatureVerified by remember { mutableStateOf(false) }
   var grassStreak by remember { mutableStateOf(1) }
 
@@ -779,7 +779,7 @@ fun MainScreen(
 
           Spacer(Modifier.height(6.dp))
           Text(
-            "Focus threshold reached. Step away from your workstation for a mandatory 5-minute break and snap an outdoor photo.",
+            "Focus threshold reached. Step away from your workstation for a mandatory 2-minute break and snap an outdoor photo.",
             color = TextPrimary,
             fontSize = 12.sp,
             textAlign = TextAlign.Center,
@@ -805,7 +805,7 @@ fun MainScreen(
                 verticalAlignment = Alignment.CenterVertically
               ) {
                 Text(
-                  "MANDATORY 5-MINUTE PAUSE",
+                  "MANDATORY 2-MINUTE PAUSE",
                   color = TextMuted,
                   fontSize = 10.sp,
                   fontWeight = FontWeight.Bold,
@@ -850,7 +850,7 @@ fun MainScreen(
 
               Spacer(Modifier.height(4.dp))
               Text(
-                "Workstation thaws automatically after 5 minutes once outdoor nature is verified by Gemma AI.",
+                "Workstation thaws automatically after 2 minutes once outdoor nature is verified by Gemma AI.",
                 color = TextMuted,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center
@@ -1148,7 +1148,7 @@ fun MainScreen(
                     } else {
                       val remainingSecs = result.optInt("breakSecondsRemaining", breakSecondsRemaining)
                       breakSecondsRemaining = remainingSecs
-                      Toast.makeText(context, "Outdoor photo verified. Mandatory 5-minute break is still ticking down.", Toast.LENGTH_LONG).show()
+                      Toast.makeText(context, "Outdoor photo verified. Mandatory 2-minute break is still ticking down.", Toast.LENGTH_LONG).show()
                     }
                   } else {
                     if (result != null && result.has("result")) {
@@ -1310,7 +1310,7 @@ fun MainScreen(
               modifier = Modifier.fillMaxWidth()
             ) {
               Text(
-                "Outdoor photo verified. Workstation thaws once the 5-minute break timer concludes.",
+                "Outdoor photo verified. Workstation thaws once the 2-minute break timer concludes.",
                 color = TextSecondary,
                 fontSize = 11.sp,
                 modifier = Modifier.padding(8.dp)

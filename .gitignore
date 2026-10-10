@@ -21,3 +21,9 @@ local.properties
 .idea/
 *.iml
 .DS_Store
+
+# Remotion Demo Video
+demo-video-remotion/
+remotion/
+.remotion/
+

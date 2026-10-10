@@ -6,7 +6,7 @@
 
 GrassLock is an anti-slop, dual-ecosystem screen guardian built specifically for developers experiencing screen fatigue. It continuously monitors active programming processes (`Antigravity IDE`, `VS Code`, `Firefox`, `Chrome`), triggers a strict desktop lockout with real process freezing (`kill -STOP`) when work limits are reached, and enforces a dual-gated recovery requirement:
 1. Stepping away from the desk and snapping an authentic photo of outdoor nature (grass, sunlight, sky, foliage) verified by Google Gemma 4 AI.
-2. Observing a mandatory 5-minute pause cooldown to ensure genuine cognitive rest before thawing processes (`kill -CONT`).
+2. Observing a mandatory 2-minute pause cooldown to ensure genuine cognitive rest before thawing processes (`kill -CONT`).
 
 ---
 
@@ -35,8 +35,8 @@ sequenceDiagram
     Phone->>Gemma: Verify nature proof via multimodal inference
     Gemma-->>Phone: Verified: Outdoor sunlight and foliage confirmed
     
-    Note over Phone,Desk: Mandatory 5-Minute Pause Cooldown Active
-    Dev->>Dev: Relax eyes and stretch for 5 minutes
+    Note over Phone,Desk: Mandatory 2-Minute Pause Cooldown Active
+    Dev->>Dev: Relax eyes and stretch for 2 minutes
     
     Phone->>Desk: Send UNLOCK signal once both gates clear
     Desk->>Mon: Resume suspended processes via kill -CONT
@@ -52,13 +52,13 @@ sequenceDiagram
 * **Real Process Freezing**: Freezes active target applications with `kill -STOP` upon lock, and thaws them with `kill -CONT` upon verified unlock.
 * **Taste Skill Soft-Skill Design**: Built according to [tasteskill.dev](https://www.tasteskill.dev/) soft-skill principles: calm obsidian palette (`#0A0D0B`), double-bezel concentric cards, floating island header, spring motion physics, and offline Lucide icons with zero emojis.
 * **Instant Demo Mode**: Includes a 30-second Demo Mode toggle so Hacktoberfest judges can test the full lock, notify, verify, cooldown, and thaw sequence in seconds.
-* **Dual-Gated Lockout Overlay**: Covers the screen with an unignorable backdrop that displays live 5-minute break timers and verification state.
+* **Dual-Gated Lockout Overlay**: Covers the screen with an unignorable backdrop that displays live 2-minute break timers and verification state.
 
 ### 2. Android Mobile Companion (`android/`)
 * **Native Jetpack Compose UI**: Fast, responsive obsidian dark interface matching the desktop soft-skill design language with Material vector icons and zero emojis.
 * **Built-in Camera Viewfinder**: High-resolution camera capture (`ActivityResultContracts.TakePicturePreview`) for capturing instant proof of nature.
 * **Dual-Connection Modes**: Connects over Wi-Fi LAN or direct USB (`127.0.0.1:3847` via `adb reverse tcp:3847 tcp:3847`).
-* **Dual-Gate Cooldown Card**: Displays real-time breakdown of outdoor proof status and the 5-minute pause requirement before unlocking.
+* **Dual-Gate Cooldown Card**: Displays real-time breakdown of outdoor proof status and the 2-minute pause requirement before unlocking.
 
 ### 3. Open-Source AI Core: Google Gemma 4
 * Analyzes captured photos with `gemma-4-26b-a4b-it` to confirm outdoor authenticity (grass, foliage, sky, natural illumination).
